@@ -252,14 +252,14 @@ def main():
     parser.add_argument(
         "--grounding_model_provider",
         type=str,
-        default="openai",
-        help="Specify the provider to use for the grounding model (e.g., openai, anthropic, etc.)",
+        default="open_router",
+        help="Specify the provider to use for the grounding model (e.g., openai, anthropic, open_router, etc.)",
     )
     parser.add_argument(
         "--grounding_model",
         type=str,
-        default="gpt-4o",
-        help="Specify the grounding model to use (e.g., gpt-4o)",
+        default="bytedance/ui-tars-1.5-7b",
+        help="Specify the grounding model to use (e.g., bytedance/ui-tars-1.5-7b)",
     )
     parser.add_argument(
         "--grounding_model_resize_width",
@@ -338,6 +338,7 @@ def main():
         engine_params_for_grounding = {
             "engine_type": args.grounding_model_provider,
             "model": args.grounding_model,
+            "base_url": "https://openrouter.ai/api/v1",
             "grounding_width": args.grounding_model_resize_width,
             "grounding_height": grounding_height,
         }

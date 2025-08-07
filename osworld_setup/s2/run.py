@@ -123,9 +123,9 @@ def config() -> argparse.Namespace:
     # NEW!
 
     # Configuration 1
-    parser.add_argument("--grounding_model_provider", type=str, default="openai")
+    parser.add_argument("--grounding_model_provider", type=str, default="open_router")
     parser.add_argument(
-        "--grounding_model", type=str, default="gpt-4o"
+        "--grounding_model", type=str, default="bytedance/ui-tars-1.5-7b"
     )
     parser.add_argument(
         "--grounding_model_resize_width",
@@ -208,6 +208,7 @@ def test(args: argparse.Namespace, test_all_meta: dict) -> None:
         engine_params_for_grounding = {
             "engine_type": args.grounding_model_provider,
             "model": args.grounding_model,
+            "base_url": "https://openrouter.ai/api/v1",
             "grounding_width": args.grounding_model_resize_width,
             "grounding_height": grounding_height,
         }

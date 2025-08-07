@@ -1,6 +1,6 @@
 # Introduction
 
-This is the WindowsAgentArena (WAA) setup with Agent S2.5 (and beyond). Why do we need a setup guide? Despite the thorough [README.md](https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file "https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file"), we have to include our code into their repository _and_ fix up a number of setup issues from the WAA environment. Sadly, this isn’t the most straightforward.
+This is the WindowsAgentArena (WAA) setup with Agent S2 (and beyond). Why do we need a setup guide? Despite the thorough [README.md](https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file "https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file"), we have to include our code into their repository _and_ fix up a number of setup issues from the WAA environment. Sadly, this isn’t the most straightforward.
 
 # Initial WAA Setup
 
@@ -65,7 +65,7 @@ This isn’t as important, but there are a couple initial pop-ups in VSCode that
 
 _Important if you’re using_ `set_cell_values`
 
-Agent S2.5 uses a special grounding function called `set_cell_values` that takes advantage of the `soffice` CLI and `unotools` [Python library](https://pypi.org/project/unotools/ "https://pypi.org/project/unotools/"). TL; DR, this function lets the agent set the cell values for a given spreadsheet and sheet.
+Agent S2 uses a special grounding function called `set_cell_values` that takes advantage of the `soffice` CLI and `unotools` [Python library](https://pypi.org/project/unotools/ "https://pypi.org/project/unotools/"). TL; DR, this function lets the agent set the cell values for a given spreadsheet and sheet.
 
 For this function to work on WAA, the set up is a bit messy…
 
@@ -102,23 +102,28 @@ This ensures that the subprocess running in the flask server inside the VM will 
 
 Double check all apps can be used and no unexpected pop-ups or issues are in the way. Any apps you open make sure to close them upon finishing your clean-up. Make sure any installation files you have in `Downloads` are deleted (and removed from Recycle Bin) to keep the environment clean. At the end, this is our **golden image**. You may want to save a copy of this VM somewhere safe so that you can always copy it back into the WAA repository to be reused (refer to [this](https://github.com/microsoft/WindowsAgentArena/tree/main?tab=readme-ov-file#additional-notes "https://github.com/microsoft/WindowsAgentArena/tree/main?tab=readme-ov-file#additional-notes")).
 
-# Set up Agent S2.5 with WAA Locally
+# Set up Agent S2 with WAA Locally
 
 Take the time to understand the [Agent-S repository](https://github.com/simular-ai/Agent-S "https://github.com/simular-ai/Agent-S").
 
-1.  Instead of following the [README.md](https://github.com/simular-ai/Agent-S/blob/main/README.md "https://github.com/simular-ai/Agent-S/blob/main/README.md") for Agent S2.5, you need to clone the repository then `pip install -r requirements.txt`
+1.  Instead of following the [README.md](https://github.com/simular-ai/Agent-S/blob/main/README.md "https://github.com/simular-ai/Agent-S/blob/main/README.md") for Agent S2, you need to clone the repository then `pip install -r requirements.txt`
     
-2.  Move the S2.5 folder to the [mm_agents](https://github.com/microsoft/WindowsAgentArena/tree/main/src/win-arena-container/client/mm_agents "https://github.com/microsoft/WindowsAgentArena/tree/main/src/win-arena-container/client/mm_agents") folder in WAA. Follow the [Bring Your Own Agent guide](https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file#-byoa-bring-your-own-agent "https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file#-byoa-bring-your-own-agent").
+2.  Move the s2 folder to the [mm_agents](https://github.com/microsoft/WindowsAgentArena/tree/main/src/win-arena-container/client/mm_agents "https://github.com/microsoft/WindowsAgentArena/tree/main/src/win-arena-container/client/mm_agents") folder in WAA. Follow the [Bring Your Own Agent guide](https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file#-byoa-bring-your-own-agent "https://github.com/microsoft/WindowsAgentArena?tab=readme-ov-file#-byoa-bring-your-own-agent").
     
-    1.  You will need to move the `agent_s.py` file out to the `S2.5` folder and update all the relevant import statements
+    1.  You will need to move the `agent_s.py` file out to the `s2` folder and update all the relevant import statements
         
-3.  Make the necessary changes in `run.py` and `lib_run_single.py` to accommodate Agent S2.5 (replace the Navi Agent with Agent S2.5).
+3.  Make the necessary changes in `run.py` and `lib_run_single.py` to accommodate Agent S2 (replace the Navi Agent with Agent S2).
     
-4.  Test it by running the experiments! Don’t forget when you do `run-local.sh`, now you need to specify Agent S2.5 instead of the navi agent `agent="agent_s"`.
+4.  Test it by running the experiments! Don’t forget when you do `run-local.sh`, now you need to specify Agent S2 instead of the navi agent `agent="agent_s"`.
     
 5.  You may have some import errors and these libraries need to be installed inside the `winarena` container (I think). You can just add the pip install commands to the bash script where the error stems from (hacky).
+    
 
-# Agent S2.5 with WAA on Azure
+#### Perplexica
+
+There may be a Perplexica issue. The Perplexica URL must be configured so that the agent in the `winarena` Docker container can communicate with `localhost:3001` which is the forwarded port from the Perplexica container. On Mac/Windows this can be fixed by changing the `PERPLEXICA_URL` to `http://host.docker.internal:3001/api/search` . On Linux, I just disabled it… I haven’t tried, but you can add `--add-host=host.docker.internal:host-gateway` as a flag to the docker command [here](https://github.com/microsoft/WindowsAgentArena/blob/6d39ed88c545a0d40a7a02e39b928e278df7332b/scripts/run.sh#L223 "https://github.com/microsoft/WindowsAgentArena/blob/6d39ed88c545a0d40a7a02e39b928e278df7332b/scripts/run.sh#L223") (run.sh). This may let you use `http://host.docker.internal:3001/api/search` as the `PERPLEXICA_URL`
+
+# Agent S2 with WAA on Azure
 
 1.  Ensure you have:
     

@@ -2,7 +2,7 @@ from setuptools import find_packages, setup
 
 setup(
     name="gui-agents",
-    version="0.2.5",
+    version="0.2.5.post2",
     description="A library for creating general purpose GUI agents using multimodal LLMs.",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -35,8 +35,7 @@ setup(
     extras_require={"dev": ["black"]},  # Code formatter for linting
     entry_points={
         "console_scripts": [
-            "agent_s1=gui_agents.s1.cli_app:main",
-            "agent_s2=gui_agents.s2.cli_app:main",
+            "agent_s=gui_agents.s2_5.cli_app:main",
         ],
     },
     classifiers=[

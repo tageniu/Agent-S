@@ -226,13 +226,13 @@ def main():
     parser.add_argument(
         "--provider",
         type=str,
-        default="anthropic",
+        default="openai",
         help="Specify the provider to use (e.g., openai, anthropic, etc.)",
     )
     parser.add_argument(
         "--model",
         type=str,
-        default="claude-3-7-sonnet-20250219",
+        default="gpt-4o",
         help="Specify the model to use (e.g., gpt-4o)",
     )
     parser.add_argument(
@@ -252,14 +252,14 @@ def main():
     parser.add_argument(
         "--grounding_model_provider",
         type=str,
-        default="anthropic",
+        default="openai",
         help="Specify the provider to use for the grounding model (e.g., openai, anthropic, etc.)",
     )
     parser.add_argument(
         "--grounding_model",
         type=str,
-        default="claude-3-7-sonnet-20250219",
-        help="Specify the grounding model to use (e.g., claude-3-5-sonnet-20241022)",
+        default="gpt-4o",
+        help="Specify the grounding model to use (e.g., gpt-4o)",
     )
     parser.add_argument(
         "--grounding_model_resize_width",

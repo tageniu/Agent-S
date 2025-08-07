@@ -123,9 +123,9 @@ def config() -> argparse.Namespace:
     # NEW!
 
     # Configuration 1
-    parser.add_argument("--grounding_model_provider", type=str, default="anthropic")
+    parser.add_argument("--grounding_model_provider", type=str, default="openai")
     parser.add_argument(
-        "--grounding_model", type=str, default="claude-3-7-sonnet-20250219"
+        "--grounding_model", type=str, default="gpt-4o"
     )
     parser.add_argument(
         "--grounding_model_resize_width",

@@ -1,35 +1,112 @@
 #!/usr/bin/env python3
 """
 Run a sample task with Agent-S
-This script demonstrates how to run Agent-S with placeholder API keys
+This script demonstrates how to run Agent-S with configurable model settings.
+
+Model Configuration:
+- Main LLM: Configurable via --provider and --model (default: OpenAI gpt-4o)
+- Grounding Model: Configurable via --ground_provider and --ground_model 
+  (default: OpenRouter qwen/qwen-2-vl-7b-instruct)
+- Grounding Dimensions: Set via --grounding_width and --grounding_height
+  (default: 1920x1080 for UI-TARS-1.5-7B compatibility)
+
+Supported Providers:
+- Main LLM: openai, anthropic, azure, gemini, open_router, vllm, huggingface
+- Grounding: openai, anthropic, open_router, vllm, huggingface
 """
-import os
 import sys
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
 
+# ================================
+# MODEL CONFIGURATION SETTINGS
+# ================================
+# Modify these settings to customize your model configuration
+
+# Main LLM Configuration
+MAIN_PROVIDER = "openai"           # Options: openai, anthropic, azure, gemini, open_router, vllm, huggingface
+MAIN_MODEL = "gpt-4o"              # Model name (e.g., gpt-4o, claude-3-5-sonnet-20241022, o3-2025-04-16)
+MAIN_MODEL_URL = ""                # Custom API URL (optional)
+MAIN_API_KEY = ""                  # Custom API key (optional, uses env vars if empty)
+
+# Grounding Model Configuration  
+GROUND_PROVIDER = "open_router"    # Options: openai, anthropic, open_router, vllm, huggingface
+GROUND_URL = "https://openrouter.ai/api/v1"  # Grounding model endpoint URL
+GROUND_MODEL = "bytedance/ui-tars-1.5-7b"  # Grounding model name
+GROUND_API_KEY = ""                # Custom API key (optional, uses env vars if empty)
+
+# Grounding Model Dimensions (must match model's output coordinate resolution)
+GROUNDING_WIDTH = 1728
+GROUNDING_HEIGHT = 1117
+
+# Agent Configuration
+MAX_TRAJECTORY_LENGTH = 8          # Maximum number of image turns to keep
+ENABLE_REFLECTION = True           # Enable reflection agent
+
+# ================================
+# END CONFIGURATION SETTINGS
+# ================================
+
 print("Agent-S Sample Task Runner")
 print("=========================\n")
 
-# Check if API key is set
-api_key = os.environ.get("OPENAI_API_KEY", "")
-if not api_key or api_key == "YOUR_OPENAI_API_KEY_HERE":
-    print("⚠️  OpenAI API key not set!")
-    print("\nTo run Agent-S, you need to set your OpenAI API key.")
-    print("Please update the OPENAI_API_KEY in the .env file with your actual API key.")
-    print("\nThe .env file has been created with placeholders for all supported API keys.")
-    print("\nOnce you have your API key, you can run:")
-    print("- agent_s2  # For interactive CLI mode")
-    sys.exit(0)
+# Configure default model settings
+print("Configuring model and grounding model settings...")
 
-# If API key is set, run the agent
-print("API key detected. Starting Agent-S...\n")
+# Set default arguments for the CLI
+import sys
+default_args = [
+    # Main model configuration
+    "--provider", MAIN_PROVIDER,
+    "--model", MAIN_MODEL,
+    # Grounding model configuration
+    "--ground_provider", GROUND_PROVIDER,
+    "--ground_url", GROUND_URL,
+    "--ground_model", GROUND_MODEL,
+    "--grounding_width", str(GROUNDING_WIDTH),
+    "--grounding_height", str(GROUNDING_HEIGHT),
+    # Agent configuration
+    "--max_trajectory_length", str(MAX_TRAJECTORY_LENGTH),
+]
+
+# Add optional URL and API key arguments if specified
+if MAIN_MODEL_URL:
+    default_args.extend(["--model_url", MAIN_MODEL_URL])
+if MAIN_API_KEY:
+    default_args.extend(["--model_api_key", MAIN_API_KEY])
+if GROUND_API_KEY:
+    default_args.extend(["--ground_api_key", GROUND_API_KEY])
+
+# Add reflection flag if enabled
+if ENABLE_REFLECTION:
+    default_args.append("--enable_reflection")
+
+# Add default arguments to sys.argv if not already provided
+for i in range(0, len(default_args), 2):
+    arg_name = default_args[i]
+    if i + 1 < len(default_args):
+        arg_value = default_args[i + 1]
+        # Only add if not already in command line arguments
+        if arg_name not in sys.argv:
+            sys.argv.extend([arg_name, arg_value])
+    else:
+        # Handle flags (arguments without values)
+        if arg_name not in sys.argv:
+            sys.argv.append(arg_name)
+
+print(f"Model settings configured:")
+print(f"  - Main model: {MAIN_MODEL} ({MAIN_PROVIDER})")
+print(f"  - Grounding model: {GROUND_MODEL} ({GROUND_PROVIDER})")
+print(f"  - Grounding dimensions: {GROUNDING_WIDTH}x{GROUNDING_HEIGHT}")
+print(f"  - Max trajectory length: {MAX_TRAJECTORY_LENGTH}")
+print(f"  - Reflection enabled: {ENABLE_REFLECTION}")
+print()
 
 # Import and run
 try:
-    from gui_agents.s2.cli_app import main
+    from gui_agents.s2_5.cli_app import main
     main()
 except Exception as e:
     print(f"Error running Agent-S: {e}")

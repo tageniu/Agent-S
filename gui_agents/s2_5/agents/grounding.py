@@ -1,4 +1,5 @@
 import ast
+import os
 import re
 from collections import defaultdict
 from io import BytesIO
@@ -183,6 +184,9 @@ class OSWorldACI(ACI):
         # Configure the visual grounding model responsible for coordinate generation
         self.grounding_model = LMMAgent(engine_params_for_grounding)
         self.engine_params_for_grounding = engine_params_for_grounding
+
+        # Get the gui_agents path dynamically
+        self.gui_agents_path = os.path.abspath(__file__+"/../../..")
 
         # Configure text grounding agent
         self.text_span_agent = LMMAgent(
@@ -374,14 +378,23 @@ class OSWorldACI(ACI):
             hold_keys:List, list of keys to hold while clicking
         """
         x, y = self.resize_coordinates(self.coords1)
-        command = "import pyautogui; "
-
-        # TODO: specified duration?
-        for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
-        for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+        
+        if self.platform == "darwin":
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import click, keyDown, keyUp; "
+            # TODO: specified duration?
+            for k in hold_keys:
+                command += f"keyDown({repr(k)}); "
+            command += f"""click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
+            for k in hold_keys:
+                command += f"keyUp({repr(k)}); "
+        else:
+            command = "import pyautogui; "
+            # TODO: specified duration?
+            for k in hold_keys:
+                command += f"pyautogui.keyDown({repr(k)}); "
+            command += f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
+            for k in hold_keys:
+                command += f"pyautogui.keyUp({repr(k)}); "
         # Return pyautoguicode to click on the element
         return command
 
@@ -392,7 +405,7 @@ class OSWorldACI(ACI):
             app_code:str the code name of the application to switch to from the provided list of open applications
         """
         if self.platform == "darwin":
-            return f"import pyautogui; import time; pyautogui.hotkey('command', 'space', interval=0.5); pyautogui.typewrite({repr(app_code)}); pyautogui.press('enter'); time.sleep(1.0)"
+            return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, typewrite, press; import time; hotkey('command', 'space', interval=0.5); typewrite({repr(app_code)}); press('enter'); time.sleep(1.0)"
         elif self.platform == "linux":
             return UBUNTU_APP_SETUP.replace("APP_NAME", app_code)
         elif self.platform == "windows":
@@ -407,7 +420,7 @@ class OSWorldACI(ACI):
         if self.platform == "linux":
             return f"import pyautogui; pyautogui.hotkey('win'); time.sleep(0.5); pyautogui.write({repr(app_or_filename)}); time.sleep(1.0); pyautogui.hotkey('enter'); time.sleep(0.5)"
         elif self.platform == "darwin":
-            return f"import pyautogui; import time; pyautogui.hotkey('command', 'space', interval=0.5); pyautogui.typewrite({repr(app_or_filename)}); pyautogui.press('enter'); time.sleep(1.0)"
+            return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, typewrite, press; import time; hotkey('command', 'space', interval=0.5); typewrite({repr(app_or_filename)}); press('enter'); time.sleep(1.0)"
 
     @agent_action
     def type(
@@ -433,33 +446,62 @@ class OSWorldACI(ACI):
 
             x, y = self.resize_coordinates(self.coords1)
 
-            command = "import pyautogui; "
-            command += f"pyautogui.click({x}, {y}); "
+            if self.platform == "darwin":
+                command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import click, hotkey, press, write; "
+                command += f"click({x}, {y}); "
 
-            if overwrite:
-                command += (
-                    f"pyautogui.hotkey({repr(select_mod)}, 'a'); "
-                    "pyautogui.press('backspace'); "
-                )
+                if overwrite:
+                    command += (
+                        f"hotkey({repr(select_mod)}, 'a'); "
+                        "press('backspace'); "
+                    )
 
-            command += f"pyautogui.write({repr(text)}); "
+                command += f"write({repr(text)}); "
 
-            if enter:
-                command += "pyautogui.press('enter'); "
+                if enter:
+                    command += "press('enter'); "
+            else:
+                command = "import pyautogui; "
+                command += f"pyautogui.click({x}, {y}); "
+
+                if overwrite:
+                    command += (
+                        f"pyautogui.hotkey({repr(select_mod)}, 'a'); "
+                        "pyautogui.press('backspace'); "
+                    )
+
+                command += f"pyautogui.write({repr(text)}); "
+
+                if enter:
+                    command += "pyautogui.press('enter'); "
         else:
             # If no element is found, start typing at the current cursor location
-            command = "import pyautogui; "
+            if self.platform == "darwin":
+                command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, press, write; "
 
-            if overwrite:
-                command += (
-                    f"pyautogui.hotkey({repr(select_mod)}, 'a'); "
-                    "pyautogui.press('backspace'); "
-                )
+                if overwrite:
+                    command += (
+                        f"hotkey({repr(select_mod)}, 'a'); "
+                        "press('backspace'); "
+                    )
 
-            command += f"pyautogui.write({repr(text)}); "
+                command += f"write({repr(text)}); "
 
-            if enter:
-                command += "pyautogui.press('enter'); "
+                if enter:
+                    command += "press('enter'); "
+            else:
+                command = "import pyautogui; "
+
+                if overwrite:
+                    command += (
+                        f"pyautogui.hotkey({repr(select_mod)}, 'a'); "
+                        "pyautogui.press('backspace'); "
+                    )
+
+                command += f"pyautogui.write({repr(text)}); "
+
+                if enter:
+                    command += "pyautogui.press('enter'); "
 
         return command
 
@@ -485,15 +527,24 @@ class OSWorldACI(ACI):
         x1, y1 = self.resize_coordinates(self.coords1)
         x2, y2 = self.resize_coordinates(self.coords2)
 
-        command = "import pyautogui; "
-
-        command += f"pyautogui.moveTo({x1}, {y1}); "
-        # TODO: specified duration?
-        for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"pyautogui.dragTo({x2}, {y2}, duration=1., button='left'); pyautogui.mouseUp(); "
-        for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+        if self.platform == "darwin":
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo, keyDown, keyUp; from pynput.mouse import Button, Controller as MouseController; mouse = MouseController(); "
+            command += f"moveTo({x1}, {y1}); "
+            # TODO: specified duration?
+            for k in hold_keys:
+                command += f"keyDown({repr(k)}); "
+            command += f"mouse.press(Button.left); moveTo({x2}, {y2}); mouse.release(Button.left); "
+            for k in hold_keys:
+                command += f"keyUp({repr(k)}); "
+        else:
+            command = "import pyautogui; "
+            command += f"pyautogui.moveTo({x1}, {y1}); "
+            # TODO: specified duration?
+            for k in hold_keys:
+                command += f"pyautogui.keyDown({repr(k)}); "
+            command += f"pyautogui.dragTo({x2}, {y2}, duration=1., button='left'); pyautogui.mouseUp(); "
+            for k in hold_keys:
+                command += f"pyautogui.keyUp({repr(k)}); "
 
         # Return pyautoguicode to drag and drop the elements
 
@@ -513,9 +564,16 @@ class OSWorldACI(ACI):
         x1, y1 = self.coords1
         x2, y2 = self.coords2
 
-        command = "import pyautogui; "
-        command += f"pyautogui.moveTo({x1}, {y1}); "
-        command += f"pyautogui.dragTo({x2}, {y2}, duration=1., button='{button}'); pyautogui.mouseUp(); "
+        if self.platform == "darwin":
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo; from pynput.mouse import Button, Controller as MouseController; mouse = MouseController(); "
+            command += f"moveTo({x1}, {y1}); "
+            button_map = "{'left': 'Button.left', 'right': 'Button.right', 'middle': 'Button.middle'}"
+            button_code = f"eval({button_map}['{button}'])"
+            command += f"mouse.press({button_code}); moveTo({x2}, {y2}); mouse.release({button_code}); "
+        else:
+            command = "import pyautogui; "
+            command += f"pyautogui.moveTo({x1}, {y1}); "
+            command += f"pyautogui.dragTo({x2}, {y2}, duration=1., button='{button}'); pyautogui.mouseUp(); "
 
         # Return pyautoguicode to drag and drop the elements
         return command
@@ -546,10 +604,16 @@ class OSWorldACI(ACI):
 
         x, y = self.resize_coordinates(self.coords1)
 
-        if shift:
-            return f"import pyautogui; import time; pyautogui.moveTo({x}, {y}); time.sleep(0.5); pyautogui.hscroll({clicks})"
+        if self.platform == "darwin":
+            if shift:
+                return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo, scroll; import time; moveTo({x}, {y}); time.sleep(0.5); scroll({clicks}, {x}, {y})"
+            else:
+                return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo, scroll; import time; moveTo({x}, {y}); time.sleep(0.5); scroll({clicks}, {x}, {y})"
         else:
-            return f"import pyautogui; import time; pyautogui.moveTo({x}, {y}); time.sleep(0.5); pyautogui.vscroll({clicks})"
+            if shift:
+                return f"import pyautogui; import time; pyautogui.moveTo({x}, {y}); time.sleep(0.5); pyautogui.hscroll({clicks})"
+            else:
+                return f"import pyautogui; import time; pyautogui.moveTo({x}, {y}); time.sleep(0.5); pyautogui.vscroll({clicks})"
 
     @agent_action
     def hotkey(self, keys: List):
@@ -559,7 +623,10 @@ class OSWorldACI(ACI):
         """
         # add quotes around the keys
         keys = [f"'{key}'" for key in keys]
-        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)})"
+        if self.platform == "darwin":
+            return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey; hotkey({', '.join(keys)})"
+        else:
+            return f"import pyautogui; pyautogui.hotkey({', '.join(keys)})"
 
     @agent_action
     def hold_and_press(self, hold_keys: List, press_keys: List):
@@ -570,12 +637,20 @@ class OSWorldACI(ACI):
         """
 
         press_keys_str = "[" + ", ".join([f"'{key}'" for key in press_keys]) + "]"
-        command = "import pyautogui; "
-        for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"pyautogui.press({press_keys_str}); "
-        for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+        if self.platform == "darwin":
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import keyDown, keyUp, press; "
+            for k in hold_keys:
+                command += f"keyDown({repr(k)}); "
+            command += f"for key in {press_keys_str}: press(key); "
+            for k in hold_keys:
+                command += f"keyUp({repr(k)}); "
+        else:
+            command = "import pyautogui; "
+            for k in hold_keys:
+                command += f"pyautogui.keyDown({repr(k)}); "
+            command += f"pyautogui.press({press_keys_str}); "
+            for k in hold_keys:
+                command += f"pyautogui.keyUp({repr(k)}); "
 
         return command
 

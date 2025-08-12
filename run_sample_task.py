@@ -6,9 +6,7 @@ This script demonstrates how to run Agent-S with configurable model settings.
 Model Configuration:
 - Main LLM: Configurable via --provider and --model (default: OpenAI gpt-4o)
 - Grounding Model: Configurable via --ground_provider and --ground_model 
-  (default: OpenRouter qwen/qwen-2-vl-7b-instruct)
 - Grounding Dimensions: Set via --grounding_width and --grounding_height
-  (default: 1920x1080 for UI-TARS-1.5-7B compatibility)
 
 Supported Providers:
 - Main LLM: openai, anthropic, azure, gemini, open_router, vllm, huggingface
@@ -37,7 +35,7 @@ GROUND_URL = "https://openrouter.ai/api/v1"  # Grounding model endpoint URL
 GROUND_MODEL = "bytedance/ui-tars-1.5-7b"  # Grounding model name
 GROUND_API_KEY = ""                # Custom API key (optional, uses env vars if empty)
 
-# Grounding Model Dimensions (must match model's output coordinate resolution)
+# Grounding Model Dimensions
 GROUNDING_WIDTH = 1728
 GROUNDING_HEIGHT = 1117
 
@@ -101,8 +99,7 @@ print(f"  - Main model: {MAIN_MODEL} ({MAIN_PROVIDER})")
 print(f"  - Grounding model: {GROUND_MODEL} ({GROUND_PROVIDER})")
 print(f"  - Grounding dimensions: {GROUNDING_WIDTH}x{GROUNDING_HEIGHT}")
 print(f"  - Max trajectory length: {MAX_TRAJECTORY_LENGTH}")
-print(f"  - Reflection enabled: {ENABLE_REFLECTION}")
-print()
+print(f"  - Reflection enabled: {ENABLE_REFLECTION}\n")
 
 # Import and run
 try:

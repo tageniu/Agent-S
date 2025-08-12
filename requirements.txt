@@ -18,6 +18,7 @@ pytesseract
 google-genai
 
 # Platform-specific dependencies
+pynput; platform_system == "Darwin"
 pyobjc; platform_system == "Darwin"
 pywinauto; platform_system == "Windows"
 pywin32; platform_system == "Windows" 

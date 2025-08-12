@@ -40,6 +40,8 @@ class MacOSACI(ACI):
         # Directories to search for applications in MacOS
         directories_to_search = ["/System/Applications", "/Applications"]
         self.all_apps = list_apps_in_directories(directories_to_search)
+        # Get the gui_agents path dynamically
+        self.gui_agents_path = os.path.abspath(__file__+"/../../..")
 
     def get_active_apps(self, obs: Dict) -> List[str]:
         return UIElement.get_current_applications(obs)
@@ -243,7 +245,7 @@ class MacOSACI(ACI):
         Args:
             app_or_file_name:str, the name of the application or file to open
         """
-        return f"import pyautogui; import time; pyautogui.hotkey('command', 'space', interval=0.5); pyautogui.typewrite({repr(app_or_file_name)}); pyautogui.press('enter'); time.sleep(1.0)"
+        return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, typewrite, press; import time; hotkey('command', 'space', interval=0.5); typewrite({repr(app_or_file_name)}); press('enter'); time.sleep(1.0)"
 
     @agent_action
     def switch_applications(self, app_or_file_name):
@@ -251,7 +253,7 @@ class MacOSACI(ACI):
         Args:
             app_or_file_name:str, the name of the application or file to switch to
         """
-        return f"import pyautogui; import time; pyautogui.hotkey('command', 'space', interval=0.5); pyautogui.typewrite({repr(app_or_file_name)}); pyautogui.press('enter'); time.sleep(1.0)"
+        return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, typewrite, press; import time; hotkey('command', 'space', interval=0.5); typewrite({repr(app_or_file_name)}); press('enter'); time.sleep(1.0)"
 
     @agent_action
     def click(
@@ -276,17 +278,17 @@ class MacOSACI(ACI):
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
 
-        command = "import pyautogui; "
+        command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import click, keyDown, keyUp; "
 
         # Normalize any 'cmd' to 'command'
         hold_keys = [_normalize_key(k) for k in hold_keys]
 
         # TODO: specified duration?
         for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"""import pyautogui; pyautogui.click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
+            command += f"keyDown({repr(k)}); "
+        command += f"""click({x}, {y}, clicks={num_clicks}, button={repr(button_type)}); """
         for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+            command += f"keyUp({repr(k)}); "
         # Return pyautoguicode to click on the element
         return command
 
@@ -321,29 +323,29 @@ class MacOSACI(ACI):
             y = coordinates[1] + sizes[1] // 2
 
             # Start typing at the center of the element
-            command = "import pyautogui; "
-            command += f"pyautogui.click({x}, {y}); "
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import click, hotkey, press, write; "
+            command += f"click({x}, {y}); "
 
             if overwrite:
                 # Use 'command' instead of 'cmd'
-                command += f"pyautogui.hotkey('command', 'a', interval=1); pyautogui.press('backspace'); "
+                command += f"hotkey('command', 'a', interval=1); press('backspace'); "
 
-            command += f"pyautogui.write({repr(text)}); "
+            command += f"write({repr(text)}); "
 
             if enter:
-                command += "pyautogui.press('enter'); "
+                command += "press('enter'); "
         else:
             # If no element is found, start typing at the current cursor location
-            command = "import pyautogui; "
+            command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey, press, write; "
 
             if overwrite:
                 # Use 'command' instead of 'cmd'
-                command += f"pyautogui.hotkey('command', 'a', interval=1); pyautogui.press('backspace'); "
+                command += f"hotkey('command', 'a', interval=1); press('backspace'); "
 
-            command += f"pyautogui.write({repr(text)}); "
+            command += f"write({repr(text)}); "
 
             if enter:
-                command += "pyautogui.press('enter'); "
+                command += "press('enter'); "
 
         return command
 
@@ -379,15 +381,15 @@ class MacOSACI(ACI):
         x2 = coordinates2[0] + sizes2[0] // 2
         y2 = coordinates2[1] + sizes2[1] // 2
 
-        command = "import pyautogui; "
+        command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo, keyDown, keyUp; from pynput.mouse import Button, Controller as MouseController; mouse = MouseController(); "
 
-        command += f"pyautogui.moveTo({x1}, {y1}); "
+        command += f"moveTo({x1}, {y1}); "
         # TODO: specified duration?
         for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"pyautogui.dragTo({x2}, {y2}, duration=1.); pyautogui.mouseUp(); "
+            command += f"keyDown({repr(k)}); "
+        command += f"mouse.press(Button.left); moveTo({x2}, {y2}); mouse.release(Button.left); "
         for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+            command += f"keyUp({repr(k)}); "
 
         # Return pyautoguicode to drag and drop the elements
 
@@ -412,7 +414,7 @@ class MacOSACI(ACI):
         x = coordinates[0] + sizes[0] // 2
         y = coordinates[1] + sizes[1] // 2
         return (
-            f"import pyautogui; pyautogui.moveTo({x}, {y}); pyautogui.scroll({clicks})"
+            f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import moveTo, scroll; moveTo({x}, {y}); scroll({clicks}, {x}, {y})"
         )
 
     @agent_action
@@ -425,7 +427,7 @@ class MacOSACI(ACI):
         keys = [_normalize_key(k) for k in keys]
         # add quotes around the keys
         keys = [f"'{key}'" for key in keys]
-        return f"import pyautogui; pyautogui.hotkey({', '.join(keys)}, interval=1)"
+        return f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import hotkey; hotkey({', '.join(keys)}, interval=1)"
 
     @agent_action
     def hold_and_press(self, hold_keys: List, press_keys: List):
@@ -439,12 +441,12 @@ class MacOSACI(ACI):
         press_keys = [_normalize_key(k) for k in press_keys]
 
         press_keys_str = "[" + ", ".join([f"'{key}'" for key in press_keys]) + "]"
-        command = "import pyautogui; "
+        command = f"import sys; sys.path.insert(0, {repr(self.gui_agents_path)}); from pynput_helper import keyDown, keyUp, press; "
         for k in hold_keys:
-            command += f"pyautogui.keyDown({repr(k)}); "
-        command += f"pyautogui.press({press_keys_str}); "
+            command += f"keyDown({repr(k)}); "
+        command += f"for key in {press_keys_str}: press(key); "
         for k in hold_keys:
-            command += f"pyautogui.keyUp({repr(k)}); "
+            command += f"keyUp({repr(k)}); "
 
         return command
 

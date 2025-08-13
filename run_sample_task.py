@@ -5,6 +5,7 @@ This script demonstrates how to run Agent-S with configurable model settings.
 
 Model Configuration:
 - Main LLM: Configurable via --provider and --model (default: OpenAI gpt-4o)
+- Temperature: Controls model creativity (0.0 = deterministic, 2.0 = very creative)
 - Grounding Model: Configurable via --ground_provider and --ground_model 
 - Grounding Dimensions: Set via --grounding_width and --grounding_height
 
@@ -25,9 +26,10 @@ load_dotenv()
 
 # Main LLM Configuration
 MAIN_PROVIDER = "openai"           # Options: openai, anthropic, azure, gemini, open_router, vllm, huggingface
-MAIN_MODEL = "gpt-4o"              # Model name (e.g., gpt-4o, claude-3-5-sonnet-20241022, o3-2025-04-16)
+MAIN_MODEL = "gpt-5"              # Model name (e.g., gpt-4o, claude-3-5-sonnet-20241022, o3-2025-04-16)
 MAIN_MODEL_URL = ""                # Custom API URL (optional)
 MAIN_API_KEY = ""                  # Custom API key (optional, uses env vars if empty)
+TEMPERATURE = 1.0                  # Temperature setting for creativity (0.0 = deterministic, 2.0 = very creative)
 
 # Grounding Model Configuration  
 GROUND_PROVIDER = "open_router"    # Options: openai, anthropic, open_router, vllm, huggingface
@@ -59,6 +61,7 @@ default_args = [
     # Main model configuration
     "--provider", MAIN_PROVIDER,
     "--model", MAIN_MODEL,
+    "--temperature", str(TEMPERATURE),
     # Grounding model configuration
     "--ground_provider", GROUND_PROVIDER,
     "--ground_url", GROUND_URL,
@@ -96,6 +99,7 @@ for i in range(0, len(default_args), 2):
 
 print(f"Model settings configured:")
 print(f"  - Main model: {MAIN_MODEL} ({MAIN_PROVIDER})")
+print(f"  - Temperature: {TEMPERATURE}")
 print(f"  - Grounding model: {GROUND_MODEL} ({GROUND_PROVIDER})")
 print(f"  - Grounding dimensions: {GROUNDING_WIDTH}x{GROUNDING_HEIGHT}")
 print(f"  - Max trajectory length: {MAX_TRAJECTORY_LENGTH}")

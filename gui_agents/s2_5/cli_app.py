@@ -246,10 +246,10 @@ def main():
         help="The API key of the main generation model.",
     )
     parser.add_argument(
-        "--model_temperature",
+        "--temperature",
         type=float,
-        default=None,
-        help="Temperature to fix the generation model at (e.g. o3 can only be run with 1.0)"
+        default=0.0,
+        help="Temperature setting for the main model (0.0 to 2.0).",
     )
 
     # Grounding model config: Self-hosted endpoint based (required)
@@ -318,7 +318,7 @@ def main():
         "model": args.model,
         "base_url": args.model_url,
         "api_key": args.model_api_key,
-        "temperature": getattr(args, 'model_temperature', None),
+        "temperature": args.temperature,
     }
 
     # Load the grounding engine from a custom endpoint

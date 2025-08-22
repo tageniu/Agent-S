@@ -163,3 +163,7 @@ cython_debug/
 logs/
 .DS_Store
 kb_s2/
+
+# GAIA data and results
+data/
+results/

@@ -676,6 +676,29 @@ class OSWorldACI(ACI):
         """End the current task with a failure, and replan the whole task."""
         return """FAIL"""
 
+    @agent_action
+    def calculate(self, expression: str):
+        """Perform a mathematical calculation using Python environment instead of calling the calculator app.
+        This method generates Python code that imports math and numpy libraries and evaluates the expression.
+        
+        Use this function whenever you need to perform mathematical calculations instead of opening a calculator app.
+        
+        Args:
+            expression:str, a mathematical expression to evaluate (e.g., "2 + 3 * 4", "math.sqrt(16)", "np.sin(np.pi/2)")
+            
+        Example:
+            agent.calculate("2 + 3 * 4") -> Generates code that prints 14
+            agent.calculate("math.sqrt(16)") -> Generates code that prints 4.0
+            agent.calculate("np.sin(np.pi/2)") -> Generates code that prints 1.0
+        """
+        # Import math functions that might be needed
+        command = f"""import math
+import numpy as np
+result = {expression}
+print(result)
+"""
+        return command
+
 
 # ACI that supports the worker-only mode: done() and fail() become task scoped instead
 class OSWorldWorkerOnlyACI(OSWorldACI):

@@ -58,6 +58,8 @@ class PROCEDURAL_MEMORY:
         8. Generate agent.fail() as your grounded action if you get exhaustively stuck on the task and believe it is impossible.
         9. Generate agent.done() as your grounded action when your believe the task is fully complete.
         10. Do not use the "command" + "tab" hotkey on MacOS.
+        11. For mathematical calculations, ALWAYS use the agent.calculate() method instead of trying to open a calculator application. This is more reliable and faster.
+        12. When using agent.calculate(), make sure to use proper Python syntax with math or numpy functions as needed (e.g., "math.sqrt(16)" or "np.sin(np.pi/2)").
         """
         )
 

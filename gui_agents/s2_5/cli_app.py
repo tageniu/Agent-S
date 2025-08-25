@@ -206,6 +206,10 @@ def run_agent(agent, instruction: str, scaled_width: int, scaled_height: int):
                 time.sleep(0.1)
 
             # Ask for permission before executing
+            approved = show_permission_dialog(code[0][:800], "run generated code on your machine")
+            if not approved:
+                print("🔒 Execution cancelled by user. Skipping this step.")
+                continue
             exec(code[0])
             time.sleep(1.0)
 
@@ -303,6 +307,13 @@ def main():
         default=True,
         help="Enable reflection agent to assist the worker agent",
     )
+    parser.add_argument(
+        "--agent_mode",
+        type=str,
+        default="gui",
+        choices=["gui", "hybrid", "coding"],
+        help="Agent mode to use (gui, hybrid, coding)",
+    )
 
     args = parser.parse_args()
 
@@ -345,6 +356,7 @@ def main():
         platform=current_platform,
         max_trajectory_length=args.max_trajectory_length,
         enable_reflection=args.enable_reflection,
+        agent_mode=args.agent_mode,
     )
 
     while True:

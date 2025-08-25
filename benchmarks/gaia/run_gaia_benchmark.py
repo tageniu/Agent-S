@@ -21,6 +21,7 @@ os.chdir(project_root)  # Change to project root for imports
 
 from gui_agents.s2_5.agents.agent_s import AgentS2_5
 from gui_agents.s2_5.agents.grounding import OSWorldACI
+from benchmarks.gaia.scorer import question_scorer
 
 
 class GAIABenchmarkRunner:
@@ -312,25 +313,10 @@ class GAIABenchmarkRunner:
         return task_result
     
     def check_answer(self, agent_answer: str, expected_answer: str) -> bool:
-        """Check if agent's answer matches the expected answer."""
-        if not agent_answer or not expected_answer:
+        """Evaluate correctness using the official GAIA scorer."""
+        if not expected_answer:
             return False
-        
-        # Normalize answers for comparison
-        agent_norm = str(agent_answer).strip().lower()
-        expected_norm = str(expected_answer).strip().lower()
-        
-        # Direct match
-        if agent_norm == expected_norm:
-            return True
-        
-        # Check if expected answer is contained in agent's answer
-        if expected_norm in agent_norm:
-            return True
-        
-        # Additional fuzzy matching could be added here
-        
-        return False
+        return bool(question_scorer(str(agent_answer) if agent_answer is not None else "", str(expected_answer)))
     
     def run_benchmark(self):
         """Run the full benchmark suite."""

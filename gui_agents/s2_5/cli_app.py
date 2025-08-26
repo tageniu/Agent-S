@@ -13,6 +13,7 @@ from PIL import Image
 
 from gui_agents.s2_5.agents.grounding import OSWorldACI
 from gui_agents.s2_5.agents.agent_s import AgentS2_5
+from gui_agents.s2_5.agents.few_shot_agent_s import FewShotAgentS2_5
 
 current_platform = platform.system().lower()
 
@@ -303,6 +304,32 @@ def main():
         default=True,
         help="Enable reflection agent to assist the worker agent",
     )
+    
+    # Few-shot learning arguments
+    parser.add_argument(
+        "--enable_few_shot",
+        action="store_true",
+        default=False,
+        help="Enable few-shot learning from demonstrations",
+    )
+    parser.add_argument(
+        "--demonstration_path",
+        type=str,
+        default="demonstrations",
+        help="Path to store/load demonstrations",
+    )
+    parser.add_argument(
+        "--num_demonstrations",
+        type=int,
+        default=3,
+        help="Number of demonstrations to retrieve for each task",
+    )
+    parser.add_argument(
+        "--min_similarity",
+        type=float,
+        default=0.3,
+        help="Minimum similarity threshold for demonstration retrieval",
+    )
 
     args = parser.parse_args()
 
@@ -339,13 +366,32 @@ def main():
         height=screen_height,
     )
 
-    agent = AgentS2_5(
-        engine_params,
-        grounding_agent,
-        platform=current_platform,
-        max_trajectory_length=args.max_trajectory_length,
-        enable_reflection=args.enable_reflection,
-    )
+    # Choose agent based on few-shot learning flag
+    if args.enable_few_shot:
+        agent = FewShotAgentS2_5(
+            engine_params,
+            grounding_agent,
+            platform=current_platform,
+            max_trajectory_length=args.max_trajectory_length,
+            enable_reflection=args.enable_reflection,
+            enable_few_shot=True,
+            demonstration_path=args.demonstration_path,
+            num_demonstrations=args.num_demonstrations,
+            min_similarity=args.min_similarity,
+        )
+        print(f"\n✨ Few-shot learning enabled with demonstrations from '{args.demonstration_path}'")
+        stats = agent.get_statistics()
+        print(f"   - Total demonstrations: {stats.get('total_demonstrations', 0)}")
+        print(f"   - Success rate: {stats.get('success_rate', 0):.1%}")
+        print(f"   - Retrieving up to {args.num_demonstrations} similar demonstrations per task\n")
+    else:
+        agent = AgentS2_5(
+            engine_params,
+            grounding_agent,
+            platform=current_platform,
+            max_trajectory_length=args.max_trajectory_length,
+            enable_reflection=args.enable_reflection,
+        )
 
     while True:
         query = input("Query: ")
